@@ -32,231 +32,239 @@ float maxSize = 0.8f;
 float minSize = 0.1f;
 
 // Vertex Shader
-static const char *vShader = "											\n\
+static const char* vShader = "											\n\
 #version 330															\n\
 																		\n\
 layout(location = 0) in vec3 pos;										\n\
+																		\n\
+out vec4 vertexColor;													\n\
 																		\n\
 uniform mat4 model; 													\n\
 																		\n\
 void main()																\n\
 {																		\n\
 	gl_Position = model * vec4(pos, 1.0);								\n\
+	vertexColor = vec4(clamp(pos, 0.0f, 1.0f), 1.0f);					\n\
 }";
 
 // Fragment Shader
-static const char *fShader = "											\n\
+static const char* fShader = "											\n\
 #version 330															\n\
+																		\n\
+in vec4 vertexColor;													\n\
 																		\n\
 out vec4 color;															\n\
 																		\n\
 void main()																\n\
 {																		\n\
-	color = vec4(1.0f, 0.0, 0.0, 1.0);									\n\
+	color = vertexColor;												\n\
 }";
 
 void CreateTriangle()
 {
-  GLfloat vertices[] = {
-      -1.0f, -1.0f, 0.0f,
-      1.0f, -1.0f, 0.0f,
-      0.0f, 1.0f, 0.0f};
+	GLfloat vertices[] =
+	{
+		-1.0f, -1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f
+	};
 
-  glGenVertexArrays(1, &VAO);
-  glBindVertexArray(VAO);
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
 
-  glGenBuffers(1, &VBO);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
 
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
-void AddShader(GLint theProgram, const char *shaderCode, GLenum shaderType)
+void AddShader(GLint theProgram, const char* shaderCode, GLenum shaderType)
 {
-  GLint theShader = glCreateShader(shaderType);
+	GLint theShader = glCreateShader(shaderType);
 
-  const GLchar *theCode[1];
-  theCode[0] = shaderCode;
+	const GLchar* theCode[1];
+	theCode[0] = shaderCode;
 
-  GLint codeLength[1];
-  codeLength[0] = strlen(shaderCode);
+	GLint codeLength[1];
+	codeLength[0] = strlen(shaderCode);
 
-  glShaderSource(theShader, 1, theCode, codeLength);
-  glCompileShader(theShader);
+	glShaderSource(theShader, 1, theCode, codeLength);
+	glCompileShader(theShader);
 
-  GLint result = 0;
-  GLchar eLog[1024] = {0};
+	GLint result = 0;
+	GLchar eLog[1024] = { 0 };
 
-  glGetShaderiv(theShader, GL_COMPILE_STATUS, &result);
-  if (!result)
-  {
-    glGetShaderInfoLog(theShader, sizeof(eLog), NULL, eLog);
-    printf("Error compiling the %d shader: '%s'\n", shaderType, eLog);
-    return;
-  }
+	glGetShaderiv(theShader, GL_COMPILE_STATUS, &result);
+	if (!result)
+	{
+		glGetShaderInfoLog(theShader, sizeof(eLog), NULL, eLog);
+		printf("Error compiling the %d shader: '%s'\n", shaderType, eLog);
+		return;
+	}
 
-  glAttachShader(theProgram, theShader);
+	glAttachShader(theProgram, theShader);
 }
 
 void CompileShaders()
 {
-  shader = glCreateProgram();
+	shader = glCreateProgram();
 
-  if (!shader)
-  {
-    printf("Error creating shader program!\n");
-    return;
-  }
+	if (!shader)
+	{
+		printf("Error creating shader program!\n");
+		return;
+	}
 
-  AddShader(shader, vShader, GL_VERTEX_SHADER);
-  AddShader(shader, fShader, GL_FRAGMENT_SHADER);
+	AddShader(shader, vShader, GL_VERTEX_SHADER);
+	AddShader(shader, fShader, GL_FRAGMENT_SHADER);
 
-  GLint result = 0;
-  GLchar eLog[1024] = {0};
+	GLint result = 0;
+	GLchar eLog[1024] = { 0 };
 
-  glLinkProgram(shader);
-  glGetProgramiv(shader, GL_LINK_STATUS, &result);
-  if (!result)
-  {
-    glGetProgramInfoLog(shader, sizeof(eLog), NULL, eLog);
-    printf("Error linking program: '%s'\n", eLog);
-    return;
-  }
+	glLinkProgram(shader);
+	glGetProgramiv(shader, GL_LINK_STATUS, &result);
+	if (!result)
+	{
+		glGetProgramInfoLog(shader, sizeof(eLog), NULL, eLog);
+		printf("Error linking program: '%s'\n", eLog);
+		return;
+	}
 
-  glValidateProgram(shader);
-  glGetProgramiv(shader, GL_VALIDATE_STATUS, &result);
-  if (!result)
-  {
-    glGetProgramInfoLog(shader, sizeof(eLog), NULL, eLog);
-    printf("Error validating program: '%s'\n", eLog);
-    return;
-  }
+	glValidateProgram(shader);
+	glGetProgramiv(shader, GL_VALIDATE_STATUS, &result);
+	if (!result)
+	{
+		glGetProgramInfoLog(shader, sizeof(eLog), NULL, eLog);
+		printf("Error validating program: '%s'\n", eLog);
+		return;
+	}
 
-  uniformModel = glGetUniformLocation(shader, "model");
+	uniformModel = glGetUniformLocation(shader, "model");
 }
 
 int main()
 {
-  // Initialize GLFW
-  if (!glfwInit())
-  {
-    printf("GLFW initialization failed!");
-    glfwTerminate();
-    return 1;
-  }
+	// Initialize GLFW
+	if (!glfwInit())
+	{
+		printf("GLFW initialization failed!");
+		glfwTerminate();
+		return 1;
+	}
 
-  // Setup GLFW window properties
-  // OpenGL version 3.3
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  // Core profile = No backwards Compatibility
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  // Allow forward compatibility
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+	// Setup GLFW window properties
+	// OpenGL version 3.3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	// Core profile = No backwards Compatibility
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	// Allow forward compatibility
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 
-  GLFWwindow *mainWindow = glfwCreateWindow(WIDTH, HEIGHT, "Test Window", NULL, NULL);
+	GLFWwindow* mainWindow = glfwCreateWindow(WIDTH, HEIGHT, "Test Window", NULL, NULL);
 
-  if (!mainWindow)
-  {
-    printf("GLFW window creation failed!");
-    glfwTerminate();
-    return 1;
-  }
+	if (!mainWindow)
+	{
+		printf("GLFW window creation failed!");
+		glfwTerminate();
+		return 1;
+	}
 
-  // Get Buffer size information
-  int bufferWidth, bufferHeight;
-  glfwGetFramebufferSize(mainWindow, &bufferWidth, &bufferHeight);
+	// Get Buffer size information
+	int bufferWidth, bufferHeight;
+	glfwGetFramebufferSize(mainWindow, &bufferWidth, &bufferHeight);
 
-  // Set the context for GLEW to use
-  glfwMakeContextCurrent(mainWindow);
+	// Set the context for GLEW to use
+	glfwMakeContextCurrent(mainWindow);
 
-  // Allow modern extension features
-  glewExperimental = GL_TRUE;
+	// Allow modern extension features
+	glewExperimental = GL_TRUE;
 
-  // Initialize GLEW
-  if (glewInit() != GLEW_OK)
-  {
-    printf("GLEW initialization failed!");
-    glfwDestroyWindow(mainWindow);
-    glfwTerminate();
-    return 1;
-  }
+	// Initialize GLEW
+	if (glewInit() != GLEW_OK)
+	{
+		printf("GLEW initialization failed!");
+		glfwDestroyWindow(mainWindow);
+		glfwTerminate();
+		return 1;
+	}
 
-  // Setup view port size
-  glViewport(0, 0, bufferWidth, bufferHeight);
+	// Setup view port size
+	glViewport(0, 0, bufferWidth, bufferHeight);
 
-  CreateTriangle();
-  CompileShaders();
+	CreateTriangle();
+	CompileShaders();
 
-  // Loop until window close
-  while (!glfwWindowShouldClose(mainWindow))
-  {
-    // Get + Handle user input events
-    glfwPollEvents();
+	// Loop until window close
+	while (!glfwWindowShouldClose(mainWindow))
+	{
+		// Get + Handle user input events
+		glfwPollEvents();
 
-    // Increment the offset of the triangle based on the direction
-    if (direction)
-    {
-      triangleOffset += triangleIncrement;
-    }
-    else
-    {
-      triangleOffset -= triangleIncrement;
-    }
+		// Increment the offset of the triangle based on the direction
+		if (direction)
+		{
+			triangleOffset += triangleIncrement;
+		}
+		else
+		{
+			triangleOffset -= triangleIncrement;
+		}
 
-    // If the offset exceeds our offset limit, change the direction
-    if (abs(triangleOffset) >= triangleMaxOffset)
-    {
-      direction = !direction;
-    }
+		// If the offset exceeds our offset limit, change the direction
+		if (abs(triangleOffset) >= triangleMaxOffset)
+		{
+			direction = !direction;
+		}
 
-    currentAngle += 0.1f;
-    if (currentAngle >= 360)
-    {
-      currentAngle -= 360;
-    }
+		currentAngle += 0.1f;
+		if (currentAngle >= 360)
+		{
+			currentAngle -= 360;
+		}
 
-    if (sizeDirection)
-    {
-      currentSize += 0.001f;
-    }
-    else
-    {
-      currentSize -= 0.001f;
-    }
+		if (sizeDirection)
+		{
+			currentSize += 0.001f;
+		}
+		else
+		{
+			currentSize -= 0.001f;
+		}
 
-    if (currentSize >= maxSize || currentSize <= minSize)
-    {
-      sizeDirection = !sizeDirection;
-    }
+		if (currentSize >= maxSize || currentSize <= minSize)
+		{
+			sizeDirection = !sizeDirection;
+		}
 
-    // Clear window
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+		// Clear window
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
 
-    glUseProgram(shader);
+		glUseProgram(shader);
 
-    // Model matrix
-    glm::mat4 model(1.0f);
-    model = glm::rotate(model, currentAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
-    model = glm::translate(model, glm::vec3(triangleOffset, 0.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(currentSize, currentSize, 1.0f));
+		// Model matrix
+		glm::mat4 model(1.0f);
+		//model = glm::rotate(model, currentAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
+		//model = glm::translate(model, glm::vec3(triangleOffset, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
 
-    glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glBindVertexArray(0);
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 
-    glUseProgram(0);
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glBindVertexArray(0);
 
-    glfwSwapBuffers(mainWindow);
-  }
+		glUseProgram(0);
 
-  return 0;
+		glfwSwapBuffers(mainWindow);
+	}
+
+	return 0;
 }
