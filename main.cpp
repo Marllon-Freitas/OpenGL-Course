@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+
 #include <stdio.h>
 #include <string.h>
 #include <cmath>
@@ -11,6 +13,8 @@
 
 // Window dimension
 const GLint WIDTH = 800, HEIGHT = 600;
+// Transforms everything we multiply by this in a radian
+const float toRadians = M_PI / 180.0f;
 
 GLuint VAO, VBO, shader, uniformModel;
 
@@ -20,6 +24,8 @@ bool direction = true;
 float triangleOffset = 0.0f;
 float triangleMaxOffset = 0.7f;
 float triangleIncrement = 0.005f;
+
+float currentAngle = 0.0f;
 
 // Vertex Shader
 static const char *vShader = "											\n\
@@ -205,6 +211,12 @@ int main()
       direction = !direction;
     }
 
+    currentAngle += 0.1f;
+    if (currentAngle >= 360)
+    {
+      currentAngle -= 360;
+    }
+
     // Clear window
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -214,6 +226,7 @@ int main()
     // Model matrix
     glm::mat4 model(1.0f);
     model = glm::translate(model, glm::vec3(triangleOffset, 0.0f, 0.0f));
+    model = glm::rotate(model, currentAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f));
 
     glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 
