@@ -16,13 +16,13 @@ const GLint WIDTH = 800, HEIGHT = 600;
 // Transforms everything we multiply by this in a radian
 const float toRadians = M_PI / 180.0f;
 
-GLuint VAO, VBO, IBO, shader, uniformModel;
+GLuint VAO, VBO, IBO, shader, uniformModel, uniformProjection;
 
 // true = right, false = left
 bool direction = true;
 float triangleOffset = 0.0f;
 float triangleMaxOffset = 0.7f;
-float triangleIncrement = 0.005f;
+float triangleIncrement = 0.09f;
 
 float currentAngle = 0.0f;
 
@@ -40,10 +40,11 @@ layout(location = 0) in vec3 pos;										\n\
 out vec4 vertexColor;													\n\
 																		\n\
 uniform mat4 model; 													\n\
+uniform mat4 projection; 												\n\
 																		\n\
 void main()																\n\
 {																		\n\
-	gl_Position = model * vec4(pos, 1.0);								\n\
+	gl_Position = projection * model * vec4(pos, 1.0);					\n\
 	vertexColor = vec4(clamp(pos, 0.0f, 1.0f), 1.0f);					\n\
 }";
 
@@ -161,6 +162,7 @@ void CompileShaders()
 	}
 
 	uniformModel = glGetUniformLocation(shader, "model");
+	uniformProjection = glGetUniformLocation(shader, "projection");
 }
 
 int main()
@@ -219,6 +221,14 @@ int main()
 	CreateTriangle();
 	CompileShaders();
 
+	// Projection matrix
+	glm::mat4 projection = glm::perspective(
+		45.0f,																				// Field of view
+		(GLfloat)bufferWidth / (GLfloat)bufferHeight,	// Aspect(window width / window height)
+		1.0f,																					// Near view - closest thing we can see
+		100.0f																				// Far view - farthest thing we can see
+	);
+
 	// Loop until window close
 	while (!glfwWindowShouldClose(mainWindow))
 	{
@@ -269,12 +279,14 @@ int main()
 
 		// Model matrix
 		glm::mat4 model(1.0f);
-		model = glm::rotate(model, currentAngle * toRadians, glm::vec3(0.5f, 1.0f, 0.0f));
-		//model = glm::translate(model, glm::vec3(triangleOffset, 0.0f, 0.0f));
+
+		model = glm::translate(model, glm::vec3(triangleOffset, 0.1f, -2.5f));
+		//model = glm::rotate(model, currentAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
 
 
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
 
 		glBindVertexArray(VAO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
