@@ -1,4 +1,5 @@
 #define _USE_MATH_DEFINES
+#define STB_IMAGE_IMPLEMENTATION
 
 #include <stdio.h>
 #include <string.h>
@@ -16,6 +17,7 @@
 #include "Mesh.h"
 #include "Shader.h"
 #include "Camera.h"
+#include "Texture.h"
 
 // Transforms everything we multiply by this in a radian
 const float toRadians = M_PI / 180.0f;
@@ -24,6 +26,9 @@ Window mainWindow;
 std::vector<Mesh*> meshList;
 std::vector<Shader> shaderList;
 Camera camera;
+
+Texture dirtTexture;
+Texture brickTexture;
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
@@ -46,18 +51,19 @@ void CreateObjects()
 
 	GLfloat vertices[] =
 	{
-		-1.0f, -1.0f, 0.0f, // bottom left [0]
-		0.0f, -1.0f, 1.0f,  // background  [1]
-		1.0f, -1.0f, 0.0f,  // bottom right[2]
-		0.0f, 1.0f, 0.0f    // top		   [3]
+		//	x	y	z				u	v
+			-1.0f, -1.0f, 0.0f,		0.0f, 0.0f,
+			0.0f, -1.0f, 1.0f,		0.5f, 0.5,
+			1.0f, -1.0f, 0.0f,		1.0f, 0.0f,
+			0.0f, 1.0f, 0.0f,		0.5f, 1.0f
 	};
 
 	Mesh* object01 = new Mesh();
-	object01->CreateMesh(vertices, indices, 12, 12);
+	object01->CreateMesh(vertices, indices, 20, 12);
 	meshList.push_back(object01);
 
 	Mesh* object02 = new Mesh();
-	object02->CreateMesh(vertices, indices, 12, 12);
+	object02->CreateMesh(vertices, indices, 20, 12);
 	meshList.push_back(object02);
 }
 
@@ -78,13 +84,19 @@ int main()
 
 	camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 3.0f, 0.09f);
 
+	brickTexture = Texture("Textures/brick.png");
+	brickTexture.LoadTexture();
+
+	dirtTexture = Texture("Textures/dirt.png");
+	dirtTexture.LoadTexture();
+
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0;
 
 	// Projection matrix
 	glm::mat4 projection = glm::perspective(
 		45.0f,														// Field of view
 		mainWindow.getBufferWidth() / mainWindow.getBufferHeight(),	// Aspect(window width / window height)
-		1.0f,														// Near view - closest thing we can see
+		0.3f,														// Near view - closest thing we can see
 		100.0f														// Far view - farthest thing we can see
 	);
 
@@ -121,12 +133,16 @@ int main()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
 		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.CalculateViewMatrix()));
+		brickTexture.UseTexture();
+
 		meshList[0]->RenderMesh();
 
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 1.0f, -2.5f));
 		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		dirtTexture.UseTexture();
+
 		meshList[1]->RenderMesh();
 
 		glUseProgram(0);
