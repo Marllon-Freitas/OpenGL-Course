@@ -7,6 +7,7 @@ layout(location = 2) in vec3 normal;
 out vec4 vertexColor;
 out vec2 TextureCoordinates;
 out vec3 Normal;
+out vec3 FragPosition;
 
 uniform mat4 model;
 uniform mat4 projection;
@@ -20,4 +21,6 @@ void main()
 	TextureCoordinates = texture;
 	
 	Normal = mat3(transpose(inverse(model))) * normal;
+
+	FragPosition = (model * vec4(pos, 1.0)).xyz;
 };

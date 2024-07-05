@@ -10,9 +10,15 @@ class Camera
 {
 public:
 	Camera();
-	Camera(glm::vec3 initialPosition, glm::vec3 initialUpDirection, GLfloat initialYaw, GLfloat initialPitch, GLfloat initialMovementSpeed, GLfloat initialTurnSpeed);
+	Camera(glm::vec3 initialPosition,
+		glm::vec3 initialUpDirection,
+		GLfloat initialYaw,
+		GLfloat initialPitch,
+		GLfloat initialMovementSpeed,
+		GLfloat initialTurnSpeed);
 	void KeyControl(bool* keys, GLfloat deltaTime);
 	void MouseControl(GLfloat xChange, GLfloat yChange);
+	glm::vec3 GetCameraPosition();
 	glm::mat4 CalculateViewMatrix();
 	~Camera();
 
